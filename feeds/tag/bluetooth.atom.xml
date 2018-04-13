@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Pure Wild Animal Craziness - bluetooth</title><link href="http://chris.scutcher.uk/" rel="alternate"></link><link href="http://chris.scutcher.uk/feeds/tag/bluetooth.atom.xml" rel="self"></link><id>http://chris.scutcher.uk/</id><updated>2017-04-07T15:04:46+01:00</updated><entry><title>Using the Adafruit Bluetooth LE Sniffer with modern distro</title><link href="http://chris.scutcher.uk/using-the-adafruit-bluetooth-le-sniffer-with-modern-distro.html" rel="alternate"></link><published>2017-04-07T15:04:46+01:00</published><updated>2017-04-07T15:04:46+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2017-04-07:/using-the-adafruit-bluetooth-le-sniffer-with-modern-distro.html</id><summary type="html">&lt;p&gt;I&amp;#8217;m currently doing a lot of work with &lt;span class="caps"&gt;BLE&lt;/span&gt; and so was looking for ways to
+analyse traffic on the wire. While wireshark can do sniffing with your standard
+bluetooth dongle, it can only sniff traffic that the bluetooth controller is
+directly involved with, and the indirection between bluetooth …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I&amp;#8217;m currently doing a lot of work with &lt;span class="caps"&gt;BLE&lt;/span&gt; and so was looking for ways to
+analyse traffic on the wire. While wireshark can do sniffing with your standard
+bluetooth dongle, it can only sniff traffic that the bluetooth controller is
+directly involved with, and the indirection between bluetooth bluez, host and
+controller, made me distinctly suspect that I wasn&amp;#8217;t seeing the complete picture
+even&amp;nbsp;then.&lt;/p&gt;
+&lt;p&gt;After some research I discovered
+&lt;a href="https://www.adafruit.com/product/2269"&gt;this device from adafruit&lt;/a&gt;
+which is capable of sniffing without being directly involved in the&amp;nbsp;dialogues.&lt;/p&gt;
+&lt;p&gt;After getting hold of one however, I found that it&amp;#8217;s linux support on a modern
+distros is shaky at best, mostly due to being built for older version of&amp;nbsp;wireshark.&lt;/p&gt;
+&lt;p&gt;To help any other fellow travellers here&amp;#8217;s what I did to get it mostly&amp;nbsp;working.&lt;/p&gt;
+&lt;h3&gt;Collecting the&amp;nbsp;traffic&lt;/h3&gt;
+&lt;p&gt;To make the initial pcap trace clone &lt;a href="https://github.com/adafruit/Adafruit_BLESniffer_Python"&gt;this repo&lt;/a&gt;;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/adafruit/Adafruit_BLESniffer_Python.git
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The tool we&amp;#8217;re interested in is &lt;code&gt;sniffer.py&lt;/code&gt;.
+To run this tool &lt;strong&gt;make sure you use python 2 and have pyserial installed&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Collect traffic from a particular address with a command like&amp;nbsp;this;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;python2 sniffer.py -t AA:BB:CC:DD:EE:FF -l sniffed.pcap /dev/ttyUSB0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;where &lt;code&gt;AA:BB:CC:DD:EE:FF&lt;/code&gt; is the address of the device you want to sniff and
+&lt;code&gt;/dev/ttyUSB0&lt;/code&gt; is the path to the serial device that appears when you plug the
+&lt;span class="caps"&gt;BLE&lt;/span&gt; sniffer stick in. Look at &lt;code&gt;dmesg&lt;/code&gt; after plugging the stick in to find the&amp;nbsp;latter.&lt;/p&gt;
+&lt;p&gt;This will output the sniffed packets to &lt;code&gt;sniffed.pcap&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Dissecting the traffic with&amp;nbsp;wireshark&lt;/h3&gt;
+&lt;p&gt;This bit was slightly more awkward. Unfortunately modern wireshark
+(I&amp;#8217;m using 2.2.5) doesn&amp;#8217;t have a dissector for the sniffed&amp;nbsp;packets.&lt;/p&gt;
+&lt;p&gt;The repo above does contain some c implementations of a dissector but no
+instructions on how to&amp;nbsp;build.&lt;/p&gt;
+&lt;p&gt;I had a bit more luck with &lt;a href="https://github.com/ambrice/nordic_ble"&gt;this repo&lt;/a&gt;
+which has some cmake for building and installing the dissector (although note
+the path it installs to is &lt;code&gt;.wireshark/plugins&lt;/code&gt; when it should be
+&lt;code&gt;.config/wireshark/plugins&lt;/code&gt;) but it became obvious that this dissector was
+written for an older version of&amp;nbsp;Wireshark.&lt;/p&gt;
+&lt;p&gt;What saved me was
+&lt;a href="https://github.com/tewarid/wireshark-nordic-ble-lua"&gt;this repo with a lua implementation of the dissector&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Clone this to a sensible location and add the following to
+&lt;code&gt;.config/wireshark/init.lua&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dofile(&amp;quot;/path/to/nordic_ble.lua&amp;quot;)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When you next open wireshark you should be able to read the pcap file generated
+above and see a sensible&amp;nbsp;dissection.&lt;/p&gt;
+&lt;h3&gt;Notes and&amp;nbsp;caveats&lt;/h3&gt;
+&lt;p&gt;I&amp;#8217;ve not been able to validate that the dissector or the sniffer produces
+correct results yet.
+The lua repo seems quite fresh, but there&amp;#8217;s no guarantee that it&amp;#8217;s
+dissector implementation is as correct as the c reference&amp;nbsp;implementation.&lt;/p&gt;
+&lt;p&gt;I didn&amp;#8217;t realise it at first but there also seems a reasonable python &lt;span class="caps"&gt;API&lt;/span&gt; in the
+same repo as &lt;code&gt;sniffer.py&lt;/code&gt; (indeed the sniffer seems to exists just to
+demonstrate this api). It looks pretty handy so I&amp;#8217;d like to get the chance to
+play with that&amp;nbsp;too.&lt;/p&gt;
+&lt;p&gt;There also seems to be some hint that the dissectors were eventually merged into
+the main wireshark codebase but I can&amp;#8217;t find anything to confirm that.
+Perhaps they were merged in under a different&amp;nbsp;name?&lt;/p&gt;
+&lt;h3&gt;Links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://www.adafruit.com/product/2269"&gt;Adafruit product&amp;nbsp;page&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://learn.adafruit.com/introducing-the-adafruit-bluefruit-le-sniffer"&gt;Adafruit docs on the&amp;nbsp;sniffer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/adafruit/Adafruit_BLESniffer_Python"&gt;Python &lt;span class="caps"&gt;API&lt;/span&gt; for Bluefruit &lt;span class="caps"&gt;LE&lt;/span&gt;&amp;nbsp;Sniffer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/ambrice/nordic_ble"&gt;C based wireshark dissectors with&amp;nbsp;Cmake&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/tewarid/wireshark-nordic-ble-lua"&gt;Lua wireshark&amp;nbsp;dissector&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://devzone.nordicsemi.com/blogs/750/ble-sniffer-in-linux-using-wireshark/"&gt;Docs from Nordic who make the sniffer&amp;nbsp;chip&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://devzone.nordicsemi.com/question/67447/wireshark-201-and-nrfsniffer/"&gt;Relevant question on nordic help&amp;nbsp;forum&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://devzone.nordicsemi.com/question/79845/nrf-sniffer-support-for-wireshark-v203/"&gt;Another relevant question on nordic help&amp;nbsp;forum&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="notes"></category><category term="research"></category><category term="bluetooth"></category><category term="ble"></category></entry></feed>

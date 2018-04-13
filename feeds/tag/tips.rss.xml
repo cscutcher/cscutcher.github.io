@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Pure Wild Animal Craziness - tips</title><link>http://chris.scutcher.uk/</link><description></description><lastBuildDate>Mon, 27 Apr 2015 19:25:48 +0100</lastBuildDate><item><title>Python Iterator Tips</title><link>http://chris.scutcher.uk/python-iterator-tips.html</link><description>&lt;p&gt;Python&amp;#8217;s iterator protocol is a &lt;strong&gt;powerful&lt;/strong&gt; tool in your&amp;nbsp;arsenal.&lt;/p&gt;
+&lt;p&gt;An &lt;code&gt;Iterator&lt;/code&gt; is an object that returns streams of data.
+To be an iterator an instance just have to have a next() method.
+Repeated calls to the iterator’s next() method return successive items in the
+stream. When no …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Chris Scutcher</dc:creator><pubDate>Thu, 23 Apr 2015 15:42:30 +0100</pubDate><guid isPermaLink="false">tag:chris.scutcher.uk,2015-04-23:/python-iterator-tips.html</guid><category>python</category><category>tips</category><category>programming</category></item></channel></rss>

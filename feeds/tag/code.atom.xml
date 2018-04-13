@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Pure Wild Animal Craziness - code</title><link href="http://chris.scutcher.uk/" rel="alternate"></link><link href="http://chris.scutcher.uk/feeds/tag/code.atom.xml" rel="self"></link><id>http://chris.scutcher.uk/</id><updated>2015-04-28T18:08:40+01:00</updated><entry><title>Start google chrome with a socks proxy on linux</title><link href="http://chris.scutcher.uk/start-google-chrome-with-a-socks-proxy-on-linux.html" rel="alternate"></link><published>2015-04-28T17:49:01+01:00</published><updated>2015-04-28T18:02:53+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2015-04-28:/start-google-chrome-with-a-socks-proxy-on-linux.html</id><summary type="html">&lt;p&gt;Useful if you want to forward chrome over ssh socks&amp;nbsp;proxy.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;google-chrome --proxy-server&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;socks5://localhost:6666&amp;quot;&lt;/span&gt; --host-resolver-rules&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;MAP * 0.0.0.0 , EXCLUDE localhost&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;Useful if you want to forward chrome over ssh socks&amp;nbsp;proxy.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;google-chrome --proxy-server&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;socks5://localhost:6666&amp;quot;&lt;/span&gt; --host-resolver-rules&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;MAP * 0.0.0.0 , EXCLUDE localhost&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="code"></category><category term="chrome"></category><category term="proxy"></category></entry><entry><title>How I Built This Site</title><link href="http://chris.scutcher.uk/how-i-built-this-site.html" rel="alternate"></link><published>2015-04-27T12:29:50+01:00</published><updated>2015-04-28T18:08:40+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2015-04-27:/how-i-built-this-site.html</id><summary type="html">&lt;p&gt;Main build status: &lt;a href="https://travis-ci.org/cscutcher/cscutcher.github.io.pelican"&gt;&lt;img alt="Build Status" src="https://travis-ci.org/cscutcher/cscutcher.github.io.pelican.svg?branch=master"&gt;&lt;/a&gt;&lt;br&gt;
+Theme build status: &lt;a href="https://travis-ci.org/cscutcher/pure-single"&gt;&lt;img alt="Build Status" src="https://travis-ci.org/cscutcher/pure-single.svg?branch=v1.0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;A long time ago I had a webpage build with Drupal. It wasn&amp;#8217;t very good and I never really used
+it properly anyway.
+After a harddrive failure I couldn&amp;#8217;t be bothered to recover the thing and left it to &lt;span class="caps"&gt;RIP&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;Recently I …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Main build status: &lt;a href="https://travis-ci.org/cscutcher/cscutcher.github.io.pelican"&gt;&lt;img alt="Build Status" src="https://travis-ci.org/cscutcher/cscutcher.github.io.pelican.svg?branch=master"&gt;&lt;/a&gt;&lt;br&gt;
+Theme build status: &lt;a href="https://travis-ci.org/cscutcher/pure-single"&gt;&lt;img alt="Build Status" src="https://travis-ci.org/cscutcher/pure-single.svg?branch=v1.0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;A long time ago I had a webpage build with Drupal. It wasn&amp;#8217;t very good and I never really used
+it properly anyway.
+After a harddrive failure I couldn&amp;#8217;t be bothered to recover the thing and left it to &lt;span class="caps"&gt;RIP&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;Recently I wanted to publish a quick python tutorial I wanted somewhere to put it.
+Someone suggested &lt;a href="https://pages.github.com/"&gt;github.io&lt;/a&gt; for hosting and so I started some&amp;nbsp;research.&lt;/p&gt;
+&lt;p&gt;This describes some of what I found out and how I constructed this page.
+It&amp;#8217;s brief but I hope it&amp;#8217;ll help others who hit the same problems.
+If I can help anyone else out drop me a&amp;nbsp;comment.&lt;/p&gt;
+&lt;h1&gt;github.io&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://pages.github.com/"&gt;github.io&lt;/a&gt; is pretty neat.
+They&amp;#8217;ll host your content for free. One pushes ones content to a &lt;a href="https://github.com"&gt;github&lt;/a&gt; repository
+called &lt;code&gt;username/username.github.io&lt;/code&gt; and it&amp;#8217;ll be hosted automatically at
+&lt;code&gt;https://username.github.io&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;It has one limitation that I&amp;#8217;ve not in the past had to worry about; it only hosts
+static content, so writing something in django or pyramid is well&amp;nbsp;out.&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m awful when it comes to &lt;span class="caps"&gt;UI&lt;/span&gt; and graphick-y design type stuff, so even if it was practical,
+writing raw &lt;span class="caps"&gt;HTML&lt;/span&gt; was right out. So I went on the search for a static web generation&amp;nbsp;package.&lt;/p&gt;
+&lt;h1&gt;Pelican&lt;/h1&gt;
+&lt;p&gt;github.io recommends &lt;a href="http://jekyllrb.com/"&gt;jekyll&lt;/a&gt;.
+It looks good but I&amp;#8217;m a pythonista so it doesn&amp;#8217;t appeal to&amp;nbsp;me.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://www.staticgen.com/"&gt;StaticGen&lt;/a&gt; is a really handy page that allows the comparison of
+the various static web generation frameworks out there.
+I filtered for Python and basically picked by popularity and simplicity.
+Based on this I picked &lt;a href="http://blog.getpelican.com/"&gt;Pelican&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I won&amp;#8217;t repeat the &lt;a href="http://docs.getpelican.com/en/3.5.0/"&gt;Pelican docs&lt;/a&gt;
+as they are pretty comprehensive. Instead if you want to see my source for generating with pelican
+&lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican"&gt;it&amp;#8217;s available here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here&amp;#8217;s a few of the ways I&amp;#8217;ve deviated from the standard&amp;nbsp;setup;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/pelicanconf.py#L40"&gt;Switched on archiving by&amp;nbsp;date.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/pelicanconf.py#L48"&gt;Disable caching as I planned to autogenerate from an environment where I won&amp;#8217;t be able to store a cache&amp;nbsp;anyway&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/Makefile"&gt;Modified the generated Makefile so it can push to my github.io repo. By default it pushes to a project based page which isn&amp;#8217;t what I&amp;nbsp;want&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Enabled the filetime_from_git plugin and created a new plugin called&amp;nbsp;permalinks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;filetime_from_git&lt;/h2&gt;
+&lt;p&gt;This handy plugin allows the creation and modification times to be extracted from the git repo
+based on the first commit introducing that file rather than be manually entered for each pelican&amp;nbsp;article.&lt;/p&gt;
+&lt;p&gt;I had a couple of issues with the module as things&amp;nbsp;stood;&lt;/p&gt;
+&lt;p&gt;Firstly it had a dependency on some versions of the pythongit module.
+Unfortunately its not so easy as installing the right pythongit version as that has a dependency
+on the binary git version available on ones distro.
+So I wanted to make a modification to provide some isolation from the gitpython&amp;nbsp;version.&lt;/p&gt;
+&lt;p&gt;Secondly the creation and modification times were based on the filename and did not follow a file
+through renames. Being the sort of person that is always changing there mind on titles and naming
+schemes I wanted creation and modification to be robust to renames and so modified the plugin to&amp;nbsp;use;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git log --folow &amp;lt;filename&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;to discover commits involving that&amp;nbsp;filename.&lt;/p&gt;
+&lt;p&gt;These changes are in &lt;a href="https://github.com/cscutcher/pelican-plugins/commit/47269dd35b9236de7fc84fa99fb9e41c8d975c05"&gt;my private fork&lt;/a&gt;
+of pelican-plugins and have now been merged to the main pelican-plugins&amp;nbsp;repo.&lt;/p&gt;
+&lt;h2&gt;permalinks&lt;/h2&gt;
+&lt;p&gt;I wanted to be able to generate some sort of permalink for articles that would again be
+robust to&amp;nbsp;renames.&lt;/p&gt;
+&lt;p&gt;I hit on the idea of using the commit sha of the original commit (again using &lt;code&gt;--follow&lt;/code&gt;)
+introducing a file to be a key allowing redirection to whatever it&amp;#8217;s new path&amp;nbsp;is.&lt;/p&gt;
+&lt;p&gt;To achieve this I first created a permalinks module which would create an extra file
+in &lt;code&gt;/permalinks/&amp;lt;some_permalink_id&amp;gt;.html&lt;/code&gt; for each article or page on the site. This page
+would redirect (using &lt;span class="caps"&gt;HTML&lt;/span&gt; refresh or javascript) to its new location. It uses whatever
+arbitrary key is stored in the &lt;code&gt;permalink_id&lt;/code&gt; metadata for &lt;code&gt;some_permalink_id&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Obviously doing redirects this way, rather than pucker &lt;span class="caps"&gt;HTTP&lt;/span&gt; redirects is suboptimal, but it&amp;#8217;s the
+only option I have given the static nature of the&amp;nbsp;site.&lt;/p&gt;
+&lt;p&gt;Next I modified the filetime_from_git module to use the same mechanism for finding creation
+dates to store the original commit sha as the &lt;code&gt;permalink_id&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I also modified the theme to include this link at the bottom of each page and article for easy&amp;nbsp;access.&lt;/p&gt;
+&lt;p&gt;At the moment this new plugin (and the modifications to filetime_from_git) are only on
+&lt;a href="https://github.com/cscutcher/pelican-plugins/tree/permalinks"&gt;a branch of my private fork of pelican-plugins&lt;/a&gt;.&lt;/p&gt;
+&lt;h1&gt;Theme&lt;/h1&gt;
+&lt;p&gt;After looking through a few of the available themes for pelican I settled on
+&lt;a href="https://github.com/PurePelicanTheme/pure-single"&gt;pure-single&lt;/a&gt; which I think looks pretty&amp;nbsp;snazzy.&lt;/p&gt;
+&lt;p&gt;As I want to easily hack in modifications (as I made for permalinks) I use my &lt;a href="https://github.com/cscutcher/pure-single"&gt;own fork available
+here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Apart from the permalink modification mentioned above the only other modification I&amp;#8217;ve made
+so far is &lt;a href="https://github.com/cscutcher/pure-single/blob/master/templates/google.html"&gt;adding google comments to the bottom of articles and pages&lt;/a&gt;.&lt;/p&gt;
+&lt;h1&gt;Automatic generation and push to github using&amp;nbsp;TravisCI&lt;/h1&gt;
+&lt;p&gt;This site automatically gets updated when I push to either
+&lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican"&gt;cscutcher/cscutcher.github.io.pelican&lt;/a&gt;
+or to the fork of the pure-single theme at &lt;a href="https://github.com/cscutcher/pure-single"&gt;cscutcher/pure-single&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;I do this using the wonderful &lt;a href="http://travis-ci.org/"&gt;Travis &lt;span class="caps"&gt;CI&lt;/span&gt;&lt;/a&gt; service. Travis &lt;span class="caps"&gt;CI&lt;/span&gt; allows
+adding a &lt;code&gt;.travis.yml&lt;/code&gt; file to any github which can describe a set of steps to get run on
+each commit to&amp;nbsp;github.&lt;/p&gt;
+&lt;p&gt;I use this to rebuild the site every time a commit is pushed to
+&lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican"&gt;cscutcher/cscutcher.github.io.pelican&lt;/a&gt;
+and then push the result to the
+&lt;a href="https://github.com/cscutcher/cscutcher.github.io"&gt;cscutcher/cscutcher.github.io&lt;/a&gt;
+repo hosting the&amp;nbsp;site.&lt;/p&gt;
+&lt;p&gt;To see how I do this &lt;a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/.travis.yml"&gt;see my &lt;code&gt;.travis.yml&lt;/code&gt;&lt;/a&gt;.
+It took a bunch of trial an error to get working as I couldn&amp;#8217;t think of how else to experiment
+with the Travis &lt;span class="caps"&gt;CI&lt;/span&gt; environment apart from pushing new commits and hoping for the&amp;nbsp;best!&lt;/p&gt;
+&lt;p&gt;The most notable feature of this &lt;code&gt;.travis.yml&lt;/code&gt; is that I have to use an encrypted ssh key so that
+travis can push to my repo.
+This key is encrypted by travis so only travis can decrypt it, and only when building this branch
+of my repo.
+In short the steps&amp;nbsp;are;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Generate a ssh&amp;nbsp;key.&lt;/li&gt;
+&lt;li&gt;Add the public key as a deployment key for the main github.io repo.
+   Don&amp;#8217;t add it to your users keys as this is unnecessary extra risk!
+   By adding it as deployment key you only risk one repo rather than you&amp;#8217;re whole github&amp;nbsp;account!&lt;/li&gt;
+&lt;li&gt;Use the &lt;a href="https://github.com/travis-ci/travis#readme"&gt;travis cli&lt;/a&gt; inside your repo to encrypt
+   the private key and add the decryption step to your &lt;code&gt;.travis.yml&lt;/code&gt; with &lt;code&gt;travis encrypt-file --add&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Commit &lt;strong&gt;only&lt;/strong&gt; the encrypted private key and the public key to your&amp;nbsp;repo.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;As I also wanted updated to my template fork to trigger updates I also had to create a &lt;code&gt;.travis.yml&lt;/code&gt;
+for my fork that would trigger a rebuild of a different repo on travis.
+This works by using an encrypted github api key with restricted access that is added as an encrypted
+variable to the &lt;code&gt;.travis.yml&lt;/code&gt;.
+I had some issues getting this to work with the standard travis cli so wrote a quick python
+script to trigger the rerun for the other&amp;nbsp;repository.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;travis.yml&lt;/code&gt; for the theme fork is &lt;a href="https://github.com/cscutcher/pure-single/blob/master/.travis.yml"&gt;here&lt;/a&gt;
+and the &lt;a href="https://github.com/cscutcher/travis_restart_trigger"&gt;python script to trigger reruns is here&lt;/a&gt;.&lt;/p&gt;</content><category term="web"></category><category term="python"></category><category term="code"></category></entry></feed>

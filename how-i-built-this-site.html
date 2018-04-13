@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pure Wild Animal Craziness, Personal Homepage of Chris Scutcher, Esq.">
+
+        <link rel="alternate"  href="http://chris.scutcher.uk/feeds/all.atom.xml" type="application/atom+xml" title="Pure Wild Animal Craziness Full Atom Feed"/>
+        <link rel="alternate" href="http://chris.scutcher.uk/feeds/all.rss.xml" type="application/rss+xml" title="Pure Wild Animal Craziness Full RSS Feed"/>
+
+        <title>How I Built This Site // Pure Wild Animal Craziness // Personal Homepage of Chris Scutcher, Esq.</title>
+
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.3.0/pure-min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://chris.scutcher.uk/theme/css/pure.css">
+    <link rel="stylesheet" href="http://chris.scutcher.uk/theme/css/pygments.css">
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/fitvids/1.0.1/jquery.fitvids.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $(".content").fitVids();
+        });
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "BlogPosting",
+      "headline": "How I Built This&nbsp;Site",
+      "dateCreated": "2015-04-27 12:29:50+01:00",
+      "datePublished": "2015-04-28 18:08:40+01:00",
+      "description": "How I Built This&nbsp;Site",
+      "keywords": "web,python,code,",
+      "author": {
+          "@context": "http://schema.org",
+          "@type": "Person",
+          "url": "http://chris.scutcher.uk/pages/about_me"
+      }
+    }
+    </script>
+</head>
+
+<body>
+    <div class="pure-g-r" id="layout">
+        <div class="sidebar pure-u">
+            <div class="cover-img" style="background-image: url('/images/cover_img.png')">
+                <div class="cover-body">
+                    <header class="header">
+                        <hgroup>
+                            <img class="avatar" src="https://www.gravatar.com/avatar/7dcb6b43b700a2870faa3aa1941d6da4?s=200&r=pg&d=mm">
+                            <h1 class="brand-main"><a href="http://chris.scutcher.uk">Pure Wild Animal Craziness</a></h1>
+                            <p class="tagline">Personal Homepage of Chris Scutcher, Esq.</p>
+                                <p class="links"><a href="/category/blog">Blog</a></p>
+                                <p class="links"><a href="/category/snippets">Snippets</a></p>
+                                <p class="links"><a href="/pages/about_me">About</a></p>
+                                <p class="links"><a href="/pages/cv">CV</a></p>
+                                <p class="social">
+                                    <a href="https://github.com/cscutcher">
+                                        <i class="fa fa-github fa-3x"></i>
+                                    </a>
+                                    <a href="https://uk.linkedin.com/in/cscutcher">
+                                        <i class="fa fa-linkedin fa-3x"></i>
+                                    </a>
+                                    <a href="https://plus.google.com/+ChrisScutcher">
+                                        <i class="fa fa-google-plus fa-3x"></i>
+                                    </a>
+                                    <a href="https://steamcommunity.com/id/zoolie/">
+                                        <i class="fa fa-steam fa-3x"></i>
+                                    </a>
+                                </p>
+                        </hgroup>
+                    </header>
+                </div>
+            </div>
+        </div>
+    <div class="pure-u">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>How I Built This&nbsp;Site</h1>
+                        <p class="post-meta">
+                            // under                                 <a class="post-category" href="http://chris.scutcher.uk/tag/web.html">web</a>
+                                <a class="post-category" href="http://chris.scutcher.uk/tag/python.html">python</a>
+                                <a class="post-category" href="http://chris.scutcher.uk/tag/code.html">code</a>
+                            Last modified: 2015-04-28 18:08:40+01:00
+                        </p>
+                </header>
+            </section>
+            <p>Main build status: <a href="https://travis-ci.org/cscutcher/cscutcher.github.io.pelican"><img alt="Build Status" src="https://travis-ci.org/cscutcher/cscutcher.github.io.pelican.svg?branch=master"></a><br>
+Theme build status: <a href="https://travis-ci.org/cscutcher/pure-single"><img alt="Build Status" src="https://travis-ci.org/cscutcher/pure-single.svg?branch=v1.0"></a></p>
+<p>A long time ago I had a webpage build with Drupal. It wasn&#8217;t very good and I never really used
+it properly anyway.
+After a harddrive failure I couldn&#8217;t be bothered to recover the thing and left it to <span class="caps">RIP</span>.</p>
+<p>Recently I wanted to publish a quick python tutorial I wanted somewhere to put it.
+Someone suggested <a href="https://pages.github.com/">github.io</a> for hosting and so I started some&nbsp;research.</p>
+<p>This describes some of what I found out and how I constructed this page.
+It&#8217;s brief but I hope it&#8217;ll help others who hit the same problems.
+If I can help anyone else out drop me a&nbsp;comment.</p>
+<h1>github.io</h1>
+<p><a href="https://pages.github.com/">github.io</a> is pretty neat.
+They&#8217;ll host your content for free. One pushes ones content to a <a href="https://github.com">github</a> repository
+called <code>username/username.github.io</code> and it&#8217;ll be hosted automatically at
+<code>https://username.github.io</code>.</p>
+<p>It has one limitation that I&#8217;ve not in the past had to worry about; it only hosts
+static content, so writing something in django or pyramid is well&nbsp;out.</p>
+<p>I&#8217;m awful when it comes to <span class="caps">UI</span> and graphick-y design type stuff, so even if it was practical,
+writing raw <span class="caps">HTML</span> was right out. So I went on the search for a static web generation&nbsp;package.</p>
+<h1>Pelican</h1>
+<p>github.io recommends <a href="http://jekyllrb.com/">jekyll</a>.
+It looks good but I&#8217;m a pythonista so it doesn&#8217;t appeal to&nbsp;me.</p>
+<p><a href="https://www.staticgen.com/">StaticGen</a> is a really handy page that allows the comparison of
+the various static web generation frameworks out there.
+I filtered for Python and basically picked by popularity and simplicity.
+Based on this I picked <a href="http://blog.getpelican.com/">Pelican</a>.</p>
+<p>I won&#8217;t repeat the <a href="http://docs.getpelican.com/en/3.5.0/">Pelican docs</a>
+as they are pretty comprehensive. Instead if you want to see my source for generating with pelican
+<a href="https://github.com/cscutcher/cscutcher.github.io.pelican">it&#8217;s available here</a>.</p>
+<p>Here&#8217;s a few of the ways I&#8217;ve deviated from the standard&nbsp;setup;</p>
+<ul>
+<li><a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/pelicanconf.py#L40">Switched on archiving by&nbsp;date.</a></li>
+<li><a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/pelicanconf.py#L48">Disable caching as I planned to autogenerate from an environment where I won&#8217;t be able to store a cache&nbsp;anyway</a></li>
+<li><a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/Makefile">Modified the generated Makefile so it can push to my github.io repo. By default it pushes to a project based page which isn&#8217;t what I&nbsp;want</a></li>
+<li>Enabled the filetime_from_git plugin and created a new plugin called&nbsp;permalinks.</li>
+</ul>
+<h2>filetime_from_git</h2>
+<p>This handy plugin allows the creation and modification times to be extracted from the git repo
+based on the first commit introducing that file rather than be manually entered for each pelican&nbsp;article.</p>
+<p>I had a couple of issues with the module as things&nbsp;stood;</p>
+<p>Firstly it had a dependency on some versions of the pythongit module.
+Unfortunately its not so easy as installing the right pythongit version as that has a dependency
+on the binary git version available on ones distro.
+So I wanted to make a modification to provide some isolation from the gitpython&nbsp;version.</p>
+<p>Secondly the creation and modification times were based on the filename and did not follow a file
+through renames. Being the sort of person that is always changing there mind on titles and naming
+schemes I wanted creation and modification to be robust to renames and so modified the plugin to&nbsp;use;</p>
+<div class="highlight"><pre><span></span>git log --folow &lt;filename&gt;
+</pre></div>
+
+
+<p>to discover commits involving that&nbsp;filename.</p>
+<p>These changes are in <a href="https://github.com/cscutcher/pelican-plugins/commit/47269dd35b9236de7fc84fa99fb9e41c8d975c05">my private fork</a>
+of pelican-plugins and have now been merged to the main pelican-plugins&nbsp;repo.</p>
+<h2>permalinks</h2>
+<p>I wanted to be able to generate some sort of permalink for articles that would again be
+robust to&nbsp;renames.</p>
+<p>I hit on the idea of using the commit sha of the original commit (again using <code>--follow</code>)
+introducing a file to be a key allowing redirection to whatever it&#8217;s new path&nbsp;is.</p>
+<p>To achieve this I first created a permalinks module which would create an extra file
+in <code>/permalinks/&lt;some_permalink_id&gt;.html</code> for each article or page on the site. This page
+would redirect (using <span class="caps">HTML</span> refresh or javascript) to its new location. It uses whatever
+arbitrary key is stored in the <code>permalink_id</code> metadata for <code>some_permalink_id</code>.</p>
+<p>Obviously doing redirects this way, rather than pucker <span class="caps">HTTP</span> redirects is suboptimal, but it&#8217;s the
+only option I have given the static nature of the&nbsp;site.</p>
+<p>Next I modified the filetime_from_git module to use the same mechanism for finding creation
+dates to store the original commit sha as the <code>permalink_id</code>.</p>
+<p>I also modified the theme to include this link at the bottom of each page and article for easy&nbsp;access.</p>
+<p>At the moment this new plugin (and the modifications to filetime_from_git) are only on
+<a href="https://github.com/cscutcher/pelican-plugins/tree/permalinks">a branch of my private fork of pelican-plugins</a>.</p>
+<h1>Theme</h1>
+<p>After looking through a few of the available themes for pelican I settled on
+<a href="https://github.com/PurePelicanTheme/pure-single">pure-single</a> which I think looks pretty&nbsp;snazzy.</p>
+<p>As I want to easily hack in modifications (as I made for permalinks) I use my <a href="https://github.com/cscutcher/pure-single">own fork available
+here</a>.</p>
+<p>Apart from the permalink modification mentioned above the only other modification I&#8217;ve made
+so far is <a href="https://github.com/cscutcher/pure-single/blob/master/templates/google.html">adding google comments to the bottom of articles and pages</a>.</p>
+<h1>Automatic generation and push to github using&nbsp;TravisCI</h1>
+<p>This site automatically gets updated when I push to either
+<a href="https://github.com/cscutcher/cscutcher.github.io.pelican">cscutcher/cscutcher.github.io.pelican</a>
+or to the fork of the pure-single theme at <a href="https://github.com/cscutcher/pure-single">cscutcher/pure-single</a>.</p>
+<p>I do this using the wonderful <a href="http://travis-ci.org/">Travis <span class="caps">CI</span></a> service. Travis <span class="caps">CI</span> allows
+adding a <code>.travis.yml</code> file to any github which can describe a set of steps to get run on
+each commit to&nbsp;github.</p>
+<p>I use this to rebuild the site every time a commit is pushed to
+<a href="https://github.com/cscutcher/cscutcher.github.io.pelican">cscutcher/cscutcher.github.io.pelican</a>
+and then push the result to the
+<a href="https://github.com/cscutcher/cscutcher.github.io">cscutcher/cscutcher.github.io</a>
+repo hosting the&nbsp;site.</p>
+<p>To see how I do this <a href="https://github.com/cscutcher/cscutcher.github.io.pelican/blob/master/.travis.yml">see my <code>.travis.yml</code></a>.
+It took a bunch of trial an error to get working as I couldn&#8217;t think of how else to experiment
+with the Travis <span class="caps">CI</span> environment apart from pushing new commits and hoping for the&nbsp;best!</p>
+<p>The most notable feature of this <code>.travis.yml</code> is that I have to use an encrypted ssh key so that
+travis can push to my repo.
+This key is encrypted by travis so only travis can decrypt it, and only when building this branch
+of my repo.
+In short the steps&nbsp;are;</p>
+<ol>
+<li>Generate a ssh&nbsp;key.</li>
+<li>Add the public key as a deployment key for the main github.io repo.
+   Don&#8217;t add it to your users keys as this is unnecessary extra risk!
+   By adding it as deployment key you only risk one repo rather than you&#8217;re whole github&nbsp;account!</li>
+<li>Use the <a href="https://github.com/travis-ci/travis#readme">travis cli</a> inside your repo to encrypt
+   the private key and add the decryption step to your <code>.travis.yml</code> with <code>travis encrypt-file --add</code>.</li>
+<li>Commit <strong>only</strong> the encrypted private key and the public key to your&nbsp;repo.</li>
+</ol>
+<p>As I also wanted updated to my template fork to trigger updates I also had to create a <code>.travis.yml</code>
+for my fork that would trigger a rebuild of a different repo on travis.
+This works by using an encrypted github api key with restricted access that is added as an encrypted
+variable to the <code>.travis.yml</code>.
+I had some issues getting this to work with the standard travis cli so wrote a quick python
+script to trigger the rerun for the other&nbsp;repository.</p>
+<p>The <code>travis.yml</code> for the theme fork is <a href="https://github.com/cscutcher/pure-single/blob/master/.travis.yml">here</a>
+and the <a href="https://github.com/cscutcher/travis_restart_trigger">python script to trigger reruns is here</a>.</p>
+            <a href="#" class="go-top">Go Top</a>
+    <script src="https://apis.google.com/js/plusone.js">
+    </script>
+    <div class="comments">
+        <div id='gpluscomments'></div>
+        <script src='https://apis.google.com/js/plusone.js' type='text/javascript'></script>
+        <script>
+            gapi.comments.render(
+                'gpluscomments',
+                {
+                    href: window.location.href.replace(
+                                  // This nasty hack is because the g+ commen
+                                  // wotsit doesn't seem to link slightly
+                                  // differing hostnames.
+                                  window.location.pathname, '/permalinks/ILPJpPVW5gKGsqDZsE7wQ5JKu9M='),
+                    first_party_property: 'BLOGGER',
+                    view_type: 'FILTERED_POSTMOD'
+                })
+        </script>
+    </div>
+<footer class="footer">
+    <p>
+        &copy; Chris Scutcher &ndash;
+        <a href=http://chris.scutcher.uk//permalinks/ILPJpPVW5gKGsqDZsE7wQ5JKu9M=>Permalink</a> &ndash;
+        Built with <a href="https://github.com/PurePelicanTheme/pure-single">Pure Theme</a>
+        for <a href="http://blog.getpelican.com/">Pelican</a>
+    </p>
+</footer>        </div>
+    </div>
+    </div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+
+</body>
+</html>

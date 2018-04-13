@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Pure Wild Animal Craziness - notes</title><link href="http://chris.scutcher.uk/" rel="alternate"></link><link href="http://chris.scutcher.uk/feeds/tag/notes.atom.xml" rel="self"></link><id>http://chris.scutcher.uk/</id><updated>2017-07-19T17:04:56+01:00</updated><entry><title>Tips and Hints for Setting up NFSv4 with Kerberos with FreeIPA and FreeNAS</title><link href="http://chris.scutcher.uk/tips-and-hints-for-setting-up-nfsv4-with-kerberos-with-freeipa-and-freenas.html" rel="alternate"></link><published>2017-07-19T17:00:31+01:00</published><updated>2017-07-19T17:04:56+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2017-07-19:/tips-and-hints-for-setting-up-nfsv4-with-kerberos-with-freeipa-and-freenas.html</id><summary type="html">&lt;p&gt;I have a FreeIPA server setup in my homelab which provides Kerberos and identity
+services.
+It seems like overkill, and it probably is, but I wanted to be able to use &lt;span class="caps"&gt;NFS&lt;/span&gt;
+which means that I need a way to keep user and groups in sync across my various
+machines …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I have a FreeIPA server setup in my homelab which provides Kerberos and identity
+services.
+It seems like overkill, and it probably is, but I wanted to be able to use &lt;span class="caps"&gt;NFS&lt;/span&gt;
+which means that I need a way to keep user and groups in sync across my various
+machines and&amp;nbsp;VMs.&lt;/p&gt;
+&lt;p&gt;This also allows me to use the krb5 support in NFSv4 allowing various security
+improvements up to full encryption. From the man&amp;nbsp;page;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Specifying sec=krb5 provides cryptographic proof of a user&amp;#8217;s identity in each
+&lt;span class="caps"&gt;RPC&lt;/span&gt; request.
+This provides strong verification of the identity of users accessing data on
+the server.
+Note that additional configuration besides adding this mount option is
+required in order  to  enable Kerberos security.
+Refer to the rpc.gssd(8) man page for&amp;nbsp;details.&lt;/p&gt;
+&lt;p&gt;Two additional flavors of Kerberos security are supported: krb5i and krb5p.
+The krb5i security flavor provides a cryptographically strong guarantee that
+the data in each &lt;span class="caps"&gt;RPC&lt;/span&gt; request has not been tampered with.
+The krb5p security flavor encrypts every &lt;span class="caps"&gt;RPC&lt;/span&gt; request to prevent data exposure
+during network transit; however, expect some performance impact when using
+integrity checking or  encryption.
+Similar support for other forms of cryptographic security is also&amp;nbsp;available.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;My &lt;span class="caps"&gt;NAS&lt;/span&gt; box at the moment is running FreeNAS &lt;sup id="fnref-freenas-reserved"&gt;&lt;a class="footnote-ref" href="#fn-freenas-reserved"&gt;1&lt;/a&gt;&lt;/sup&gt;,
+which is based on FreeBSD. For reasons I won&amp;#8217;t go into I needed to do a fresh
+install of FreeNAS&amp;nbsp;11.&lt;/p&gt;
+&lt;h1&gt;Pain&amp;nbsp;Points&lt;/h1&gt;
+&lt;p&gt;Getting everything working has caused me a fair bit of pain. FreeIPA is a damn
+sight easier to get going than setting up OpenLDAP and Kerberos manually, but
+it still takes a while to get to grips with the many moving parts if you&amp;#8217;re
+unfamiliar. While RedHat has some great high level documentation which applies
+to RedHat and CentOS, I found documentation lacking in general for NFSv4,
+Kerberos and &lt;span class="caps"&gt;IPA&lt;/span&gt;. FreeNAS&amp;#8217;s documentation too is a bit&amp;nbsp;lacking.&lt;/p&gt;
+&lt;p&gt;Also I found it really difficult to get at useful debug information and logs
+which made it difficult to&amp;nbsp;progress.&lt;/p&gt;
+&lt;h1&gt;Useful info for fellow&amp;nbsp;travellers&lt;/h1&gt;
+&lt;p&gt;Frankly, I&amp;#8217;m not entirely sure how I got everything working in the end, but I
+did find a few little tips that might help others going along the same&amp;nbsp;path.&lt;/p&gt;
+&lt;h3&gt;Setup everything with CentOS/Redhat only to start&amp;nbsp;with&lt;/h3&gt;
+&lt;p&gt;I found it really useful to get a working setup using only CentOS for the client
+and &lt;span class="caps"&gt;NFS&lt;/span&gt; server to start&amp;nbsp;with.&lt;/p&gt;
+&lt;p&gt;The whole FreeIPA ecosystem is very &lt;span class="caps"&gt;RH&lt;/span&gt;/CentOS friendly and it&amp;#8217;s much easier to
+get going. Everything&amp;#8217;s a little better &lt;a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Linux_Domain_Identity_Authentication_and_Policy_Guide/"&gt;documented&lt;/a&gt; and a little more&amp;nbsp;reliable.&lt;/p&gt;
+&lt;p&gt;When you&amp;#8217;ve got everything working like this it&amp;#8217;s easier to bring in FreeNAS or
+clients based on other&amp;nbsp;distributions.&lt;/p&gt;
+&lt;h3&gt;&lt;span class="caps"&gt;DNS&lt;/span&gt; is&amp;nbsp;important&lt;/h3&gt;
+&lt;p&gt;Make sure that all clients and servers can resolve each other with both forward
+and reverse &lt;span class="caps"&gt;DNS&lt;/span&gt;&amp;nbsp;lookups.&lt;/p&gt;
+&lt;h3&gt;Time must be in&amp;nbsp;sync&lt;/h3&gt;
+&lt;p&gt;Kerberos requires that time be in sync for everything involved.
+Make sure everything is pointing at the &lt;span class="caps"&gt;NTP&lt;/span&gt; server on the FreeIPA&amp;nbsp;master.&lt;/p&gt;
+&lt;h3&gt;Test&amp;nbsp;kinit&lt;/h3&gt;
+&lt;p&gt;Make sure you can&amp;nbsp;do;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;kinit user@IPA.DOMAIN
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;on everything. If that doesn&amp;#8217;t work you&amp;#8217;re going to have a bad&amp;nbsp;time.&lt;/p&gt;
+&lt;h3&gt;Enable more verbose logging for &lt;span class="caps"&gt;NFS&lt;/span&gt; on&amp;nbsp;Linux&lt;/h3&gt;
+&lt;p&gt;This can be very useful when trying to understand why a &lt;span class="caps"&gt;NFS&lt;/span&gt; mount is&amp;nbsp;failing.&lt;/p&gt;
+&lt;p&gt;Enable &lt;span class="caps"&gt;NFS&lt;/span&gt;&amp;nbsp;debug;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Client&lt;/span&gt;
+rpcdebug -m nfs -s all
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+rpcdebug -m nfsd -s all
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Disable &lt;span class="caps"&gt;NFS&lt;/span&gt;&amp;nbsp;debug;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Client&lt;/span&gt;
+rpcdebug -m nfs -c all
+&lt;span class="c1"&gt;# Server&lt;/span&gt;
+rpcdebug -m nfsd -c all
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I can never get useful information out of FreeNAS. It could be my unfamiliarity
+with&amp;nbsp;FreeBSD.&lt;/p&gt;
+&lt;h3&gt;Man&amp;nbsp;Pages&lt;/h3&gt;
+&lt;p&gt;The man pages are some of the best documentation you&amp;#8217;ll&amp;nbsp;find.&lt;/p&gt;
+&lt;p&gt;On&amp;nbsp;FreeNAS/FreeBSD;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;man nfsd
+man gssd
+man exports
+man nfsv4
+man nfsuserd
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;On&amp;nbsp;Linux;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;man nfs
+man exports
+man nfsd
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Misc Useful Tips and&amp;nbsp;Links&lt;/h3&gt;
+&lt;p&gt;Sorry this is not more organised, but hopefully it&amp;#8217;ll give clues to others
+struggling with related&amp;nbsp;problems.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;On FreeNAS ensure &amp;#8220;Require Kerberos for NFSv4&amp;#8221; is checked. &lt;a href="https://github.com/freenas/middleware/blob/88136c0d8893c690ff00bbd076b9eb0616d86593/src/dispatcher/libexec/nfsd_wrapper"&gt;See&amp;nbsp;source&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.1.0/com.ibm.zos.v2r1.idan400/kerlinx.htm"&gt;Useful debug information from &lt;span class="caps"&gt;IBM&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://help.ubuntu.com/community/NFSv4Howto"&gt;Useful debug information from&amp;nbsp;Ubuntu&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://stromberg.dnsalias.org/~strombrg/NFS-troubleshooting-2.html"&gt;Unread but promising troubleshooting&amp;nbsp;tips&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://wiki.linux-nfs.org/wiki/index.php/NFS_and_FreeIPA"&gt;&lt;span class="caps"&gt;NFS&lt;/span&gt; and&amp;nbsp;FreeIPA&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://nfs.sourceforge.net/"&gt;Linux &lt;span class="caps"&gt;NFS&lt;/span&gt; Official &lt;span class="caps"&gt;FAQ&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.freeipa.org/page/Kerberos"&gt;Introduction to&amp;nbsp;Kerberos&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Linux_Domain_Identity_Authentication_and_Policy_Guide/"&gt;Linux Domain Identity and Authentication and Policy&amp;nbsp;Guide&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.freeipa.org/page/Troubleshooting"&gt;FreeIPA Troubleshooting&amp;nbsp;Guide&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-freenas-reserved"&gt;
+&lt;p&gt;I&amp;#8217;ve been very happy with FreeNAS in the past, but I can&amp;#8217;t
+really 100% recommend it today. If I was rebuilding my &lt;span class="caps"&gt;NAS&lt;/span&gt; box I&amp;#8217;d probably look
+quite hard at the alternatives. It&amp;#8217;s still a really nice bit of software, but
+it&amp;#8217;s got some downsides. In any case I&amp;#8217;m sorta stuck with it for the moment.&amp;#160;&lt;a class="footnote-backref" href="#fnref-freenas-reserved" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="notes"></category><category term="linux"></category><category term="freebsd"></category><category term="freenas"></category><category term="nfs"></category><category term="kerberos"></category></entry><entry><title>Using the Adafruit Bluetooth LE Sniffer with modern distro</title><link href="http://chris.scutcher.uk/using-the-adafruit-bluetooth-le-sniffer-with-modern-distro.html" rel="alternate"></link><published>2017-04-07T15:04:46+01:00</published><updated>2017-04-07T15:04:46+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2017-04-07:/using-the-adafruit-bluetooth-le-sniffer-with-modern-distro.html</id><summary type="html">&lt;p&gt;I&amp;#8217;m currently doing a lot of work with &lt;span class="caps"&gt;BLE&lt;/span&gt; and so was looking for ways to
+analyse traffic on the wire. While wireshark can do sniffing with your standard
+bluetooth dongle, it can only sniff traffic that the bluetooth controller is
+directly involved with, and the indirection between bluetooth …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I&amp;#8217;m currently doing a lot of work with &lt;span class="caps"&gt;BLE&lt;/span&gt; and so was looking for ways to
+analyse traffic on the wire. While wireshark can do sniffing with your standard
+bluetooth dongle, it can only sniff traffic that the bluetooth controller is
+directly involved with, and the indirection between bluetooth bluez, host and
+controller, made me distinctly suspect that I wasn&amp;#8217;t seeing the complete picture
+even&amp;nbsp;then.&lt;/p&gt;
+&lt;p&gt;After some research I discovered
+&lt;a href="https://www.adafruit.com/product/2269"&gt;this device from adafruit&lt;/a&gt;
+which is capable of sniffing without being directly involved in the&amp;nbsp;dialogues.&lt;/p&gt;
+&lt;p&gt;After getting hold of one however, I found that it&amp;#8217;s linux support on a modern
+distros is shaky at best, mostly due to being built for older version of&amp;nbsp;wireshark.&lt;/p&gt;
+&lt;p&gt;To help any other fellow travellers here&amp;#8217;s what I did to get it mostly&amp;nbsp;working.&lt;/p&gt;
+&lt;h3&gt;Collecting the&amp;nbsp;traffic&lt;/h3&gt;
+&lt;p&gt;To make the initial pcap trace clone &lt;a href="https://github.com/adafruit/Adafruit_BLESniffer_Python"&gt;this repo&lt;/a&gt;;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/adafruit/Adafruit_BLESniffer_Python.git
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The tool we&amp;#8217;re interested in is &lt;code&gt;sniffer.py&lt;/code&gt;.
+To run this tool &lt;strong&gt;make sure you use python 2 and have pyserial installed&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Collect traffic from a particular address with a command like&amp;nbsp;this;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;python2 sniffer.py -t AA:BB:CC:DD:EE:FF -l sniffed.pcap /dev/ttyUSB0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;where &lt;code&gt;AA:BB:CC:DD:EE:FF&lt;/code&gt; is the address of the device you want to sniff and
+&lt;code&gt;/dev/ttyUSB0&lt;/code&gt; is the path to the serial device that appears when you plug the
+&lt;span class="caps"&gt;BLE&lt;/span&gt; sniffer stick in. Look at &lt;code&gt;dmesg&lt;/code&gt; after plugging the stick in to find the&amp;nbsp;latter.&lt;/p&gt;
+&lt;p&gt;This will output the sniffed packets to &lt;code&gt;sniffed.pcap&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Dissecting the traffic with&amp;nbsp;wireshark&lt;/h3&gt;
+&lt;p&gt;This bit was slightly more awkward. Unfortunately modern wireshark
+(I&amp;#8217;m using 2.2.5) doesn&amp;#8217;t have a dissector for the sniffed&amp;nbsp;packets.&lt;/p&gt;
+&lt;p&gt;The repo above does contain some c implementations of a dissector but no
+instructions on how to&amp;nbsp;build.&lt;/p&gt;
+&lt;p&gt;I had a bit more luck with &lt;a href="https://github.com/ambrice/nordic_ble"&gt;this repo&lt;/a&gt;
+which has some cmake for building and installing the dissector (although note
+the path it installs to is &lt;code&gt;.wireshark/plugins&lt;/code&gt; when it should be
+&lt;code&gt;.config/wireshark/plugins&lt;/code&gt;) but it became obvious that this dissector was
+written for an older version of&amp;nbsp;Wireshark.&lt;/p&gt;
+&lt;p&gt;What saved me was
+&lt;a href="https://github.com/tewarid/wireshark-nordic-ble-lua"&gt;this repo with a lua implementation of the dissector&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Clone this to a sensible location and add the following to
+&lt;code&gt;.config/wireshark/init.lua&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dofile(&amp;quot;/path/to/nordic_ble.lua&amp;quot;)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When you next open wireshark you should be able to read the pcap file generated
+above and see a sensible&amp;nbsp;dissection.&lt;/p&gt;
+&lt;h3&gt;Notes and&amp;nbsp;caveats&lt;/h3&gt;
+&lt;p&gt;I&amp;#8217;ve not been able to validate that the dissector or the sniffer produces
+correct results yet.
+The lua repo seems quite fresh, but there&amp;#8217;s no guarantee that it&amp;#8217;s
+dissector implementation is as correct as the c reference&amp;nbsp;implementation.&lt;/p&gt;
+&lt;p&gt;I didn&amp;#8217;t realise it at first but there also seems a reasonable python &lt;span class="caps"&gt;API&lt;/span&gt; in the
+same repo as &lt;code&gt;sniffer.py&lt;/code&gt; (indeed the sniffer seems to exists just to
+demonstrate this api). It looks pretty handy so I&amp;#8217;d like to get the chance to
+play with that&amp;nbsp;too.&lt;/p&gt;
+&lt;p&gt;There also seems to be some hint that the dissectors were eventually merged into
+the main wireshark codebase but I can&amp;#8217;t find anything to confirm that.
+Perhaps they were merged in under a different&amp;nbsp;name?&lt;/p&gt;
+&lt;h3&gt;Links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://www.adafruit.com/product/2269"&gt;Adafruit product&amp;nbsp;page&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://learn.adafruit.com/introducing-the-adafruit-bluefruit-le-sniffer"&gt;Adafruit docs on the&amp;nbsp;sniffer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/adafruit/Adafruit_BLESniffer_Python"&gt;Python &lt;span class="caps"&gt;API&lt;/span&gt; for Bluefruit &lt;span class="caps"&gt;LE&lt;/span&gt;&amp;nbsp;Sniffer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/ambrice/nordic_ble"&gt;C based wireshark dissectors with&amp;nbsp;Cmake&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/tewarid/wireshark-nordic-ble-lua"&gt;Lua wireshark&amp;nbsp;dissector&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://devzone.nordicsemi.com/blogs/750/ble-sniffer-in-linux-using-wireshark/"&gt;Docs from Nordic who make the sniffer&amp;nbsp;chip&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://devzone.nordicsemi.com/question/67447/wireshark-201-and-nrfsniffer/"&gt;Relevant question on nordic help&amp;nbsp;forum&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://devzone.nordicsemi.com/question/79845/nrf-sniffer-support-for-wireshark-v203/"&gt;Another relevant question on nordic help&amp;nbsp;forum&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="notes"></category><category term="research"></category><category term="bluetooth"></category><category term="ble"></category></entry><entry><title>Research Spike on Docker Volume Permission</title><link href="http://chris.scutcher.uk/research-spike-on-docker-volume-permission.html" rel="alternate"></link><published>2016-09-21T17:19:52+01:00</published><updated>2016-09-23T16:31:16+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2016-09-21:/research-spike-on-docker-volume-permission.html</id><summary type="html">&lt;p&gt;I love Docker. Who doesn&amp;#8217;t! But it&amp;#8217;s got one issue that continue to bugs me, and
+is always biting me in the&amp;nbsp;arse. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="Docker Logo" src="http://chris.scutcher.uk/images/docker.svg"&gt;&lt;/p&gt;
+&lt;p&gt;In many environments, such as on a dev box or a build slave, it can be useful to
+use docker to wrap a build tool …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I love Docker. Who doesn&amp;#8217;t! But it&amp;#8217;s got one issue that continue to bugs me, and
+is always biting me in the&amp;nbsp;arse. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="Docker Logo" src="http://chris.scutcher.uk/images/docker.svg"&gt;&lt;/p&gt;
+&lt;p&gt;In many environments, such as on a dev box or a build slave, it can be useful to
+use docker to wrap a build tool, or some other one-shot app.
+In other words you have some folder on your host machine that you want to modify
+and update using a dockerised&amp;nbsp;app.&lt;/p&gt;
+&lt;p&gt;The usually way to do this is use &lt;code&gt;--volume&lt;/code&gt; to mount in the host&amp;#8217;s directory
+into the container. However this causes&amp;nbsp;problems.&lt;/p&gt;
+&lt;p&gt;Most dockerised apps are designed to run as root.
+(There is a &lt;code&gt;--user&lt;/code&gt; flag for &lt;code&gt;docker run&lt;/code&gt; which I&amp;#8217;ll get to later but it
+doesn&amp;#8217;t seem to be used all that often.)
+This means that any files or folders added by the app in your volume end up
+belonging to the root user, rather than the user running &lt;code&gt;docker run&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;While it&amp;#8217;s possible to compensate for this, it&amp;#8217;s awkward as hell.
+I&amp;#8217;ve done a short research spike into some possible solutions and workarounds
+that I&amp;#8217;ve explored in the past, or have discovered more&amp;nbsp;recently.&lt;/p&gt;
+&lt;p&gt;I thought this is a good a place as any to store that research for myself and&amp;nbsp;others.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: This is really only an initial research spike so don&amp;#8217;t expect to find
+all the&amp;nbsp;answers!&lt;/em&gt;&lt;/p&gt;
+&lt;h1&gt;Using &lt;code&gt;--user&lt;/code&gt; flag with &lt;code&gt;docker run&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;This seems like the obvious answer at first. However it&amp;#8217;s not quite so perfect
+as it&amp;nbsp;seems.&lt;/p&gt;
+&lt;p&gt;The problem is that the docker image itself doesn&amp;#8217;t know what user id you&amp;#8217;re
+going to use when you &lt;code&gt;docker run&lt;/code&gt;. So say you&amp;#8217;re uid is 1111 there will be no
+entry in /etc/passwd, no home directory, nothing, unless you rebuild the docker
+image and add it&amp;nbsp;there. &lt;/p&gt;
+&lt;p&gt;Without /etc/passwd and other bits, many common linux commands start acting
+squirely. For example python gets upset looking for site packages if there&amp;#8217;s no
+home directory. 
+&lt;span class="caps"&gt;SSH&lt;/span&gt; can misbehave too, even if it has a valid &lt;code&gt;$HOME&lt;/code&gt; if there is no entry in 
+&lt;code&gt;/etc/passwd&lt;/code&gt; although I never got to the bottom of why. 
+You really can&amp;#8217;t blame the apps for this though, it&amp;#8217;s not entirely mad to assume
+that the user owning the process has a minimal footprint on the system, but it
+does complicate&amp;nbsp;matters.&lt;/p&gt;
+&lt;p&gt;This means you&amp;#8217;ve got to potentially rebuild your docker image for every
+potential user you intend to use in &lt;code&gt;--user&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;It also means that if you want to safely do &amp;#8220;root-like&amp;#8221; things, one of the big
+advantages of using docker, you can&amp;#8217;t do&amp;nbsp;so.&lt;/p&gt;
+&lt;h1&gt;Wrapping script inside the docker&amp;nbsp;image&lt;/h1&gt;
+&lt;p&gt;You could add a script in your docker image that wraps whatever command you
+intend to run with some clean up code to ensure any written files are chmodded
+back to the external users&amp;nbsp;uid:gid. &lt;/p&gt;
+&lt;p&gt;This works well enough, but unless every image you want to use already does it,
+it will probably mean you have to create your own image for almost every image
+you&amp;nbsp;use.&lt;/p&gt;
+&lt;p&gt;Said script also needs to know what the external &lt;span class="caps"&gt;UID&lt;/span&gt; is, so you&amp;#8217;ve now got to
+pass that into the &lt;code&gt;docker run&lt;/code&gt; command.
+Then you&amp;#8217;ve got to standardise how you do this in multiple images, and chances
+are you&amp;#8217;ll occasionally get something wrong and litter the volume with root&amp;nbsp;files.&lt;/p&gt;
+&lt;h1&gt;Wrapping script outside the docker&amp;nbsp;image&lt;/h1&gt;
+&lt;p&gt;Same principle as above, but instead of writing a script that&amp;#8217;s part of the
+docker image you have a script that wraps the &lt;code&gt;docker run&lt;/code&gt; command and fixes the
+files&amp;nbsp;afterwards.&lt;/p&gt;
+&lt;p&gt;On the upside you no longer have to do anything special when you run docker, but
+on the downside it likely wont work without using sudo which might not be&amp;nbsp;available.&lt;/p&gt;
+&lt;p&gt;A colleague got around this problem by calling &lt;code&gt;docker run&lt;/code&gt; a second time to do
+whatever privileged cleanup steps he needed aka docker as a sudo replacement, 
+which is a pretty novel solution, but obviously completely&amp;nbsp;mad.&lt;/p&gt;
+&lt;p&gt;Also, as with the previous &amp;#8216;solution&amp;#8217; things also get trickier if you want to
+have multiple non-root uids in play. I think it&amp;#8217;s possible but a lot more&amp;nbsp;gnarly.&lt;/p&gt;
+&lt;h1&gt;Using&amp;nbsp;bindfs&lt;/h1&gt;
+&lt;p&gt;&lt;a href="http://bindfs.org/docs/bindfs.1.html"&gt;bindfs&lt;/a&gt; can be used to bind mount one
+directory in another location and map between users on one side and the&amp;nbsp;other.&lt;/p&gt;
+&lt;p&gt;So for example if one had folder &lt;code&gt;/foo&lt;/code&gt; one could mount it in &lt;code&gt;/bar&lt;/code&gt; with the
+option &lt;code&gt;--map=jblogs/root&lt;/code&gt;.
+If there are files in &lt;code&gt;/foo&lt;/code&gt; owned by jblogs they will appear in &lt;code&gt;/bar&lt;/code&gt; as owned
+by root. If new files are created by root in &lt;code&gt;/bar&lt;/code&gt; they will appear on &lt;code&gt;/foo&lt;/code&gt;
+as owned by&amp;nbsp;jblogs.&lt;/p&gt;
+&lt;p&gt;So rather than just adding a working directory as a volume to docker, one would
+first create a bindfs mount of the working directory with a mapping and use that
+mount point as the volume with &lt;code&gt;docker run&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;&lt;span class="caps"&gt;IMO&lt;/span&gt; this is a nicer solution than any of the above, as it still allows you to be
+root inside the container, but without polluting the working&amp;nbsp;directory.&lt;/p&gt;
+&lt;p&gt;It has a bunch of downsides though;
+&lt;em&gt; It still requires you to do some scripting around the docker
+  commands to make it work cleanly. 
+&lt;/em&gt; You need bindfs (or something like it) on the host system and permission to
+  use it.
+&lt;em&gt; Bindfs in particular is apparently dog slow so I have read
+  (&lt;a href="https://github.com/docker/docker/issues/7198#issuecomment-71644946"&gt;Admittedly in a random github comment&lt;/a&gt;).
+&lt;/em&gt; I&amp;#8217;m not sure how bindfs works if you try and use a user id not covered by the
+  mappings. This could cause&amp;nbsp;problems.&lt;/p&gt;
+&lt;h1&gt;Using &lt;code&gt;docker volume create&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;This command can be used to manually create a docker volume which can be later
+mounted into the container. 
+When creating this volume one seems to be able to use any of the options
+normally present on the &amp;#8220;mount&amp;#8221; command. 
+This presumably would allow one to use something like bindfs above but keeping
+the config within docker&amp;nbsp;world. &lt;/p&gt;
+&lt;p&gt;That being said, it equally shares all of the problems with the previous&amp;nbsp;approach.&lt;/p&gt;
+&lt;p&gt;It is however the closest thing we&amp;#8217;ve got to an official solution to the
+problem.
+The bug
+&lt;a href="https://github.com/docker/docker/issues/7198"&gt;Make uid &lt;span class="amp"&gt;&amp;amp;&lt;/span&gt; gid configurable for shared volumes #7198&lt;/a&gt;
+was &lt;a href="https://github.com/docker/docker/issues/7198#issuecomment-191990887"&gt;closed&lt;/a&gt;
+when the local volumes feature&amp;nbsp;appeared;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;quot;You can do this by creating local volumes, it just landed in master #20262
+ ... Closing this as fixed.&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately how exactly local volumes could be used to achieve this was never
+explained and the rest of the bug is people trying to work out what this cryptic
+message meant. 
+It&amp;#8217;s possible there is some way to use local volumes to achieve this affect
+without bringing bindfs into the picture, but it&amp;#8217;s not obvious from my brief&amp;nbsp;investigation.&lt;/p&gt;
+&lt;h1&gt;User&amp;nbsp;Namespaces&lt;/h1&gt;
+&lt;p&gt;I&amp;#8217;m going to be slightly vague here because I&amp;#8217;m no expert on lxc and this
+feature in&amp;nbsp;particular.&lt;/p&gt;
+&lt;p&gt;User Namespaces allow a kernel level mapping between users inside and outside
+the&amp;nbsp;container. &lt;/p&gt;
+&lt;p&gt;So if we mapped out container to a namespace starting at 10000, the root user
+(uid=0) inside the container maps to uid 10000 outside. User with uid=1 inside
+maps to 10001 outside and so&amp;nbsp;on.&lt;/p&gt;
+&lt;p&gt;Immediately its obvious how this is almost exactly what we want.
+I haven&amp;#8217;t yet had a chance to try it out, but it seems like you could setup a
+pretty nice&amp;nbsp;solution.&lt;/p&gt;
+&lt;p&gt;To enable it&amp;#8217;s use in dockerd see
+&lt;a href="https://docs.docker.com/engine/reference/commandline/dockerd/#/starting-the-daemon-with-user-namespaces-enabled"&gt;this help page&lt;/a&gt;.
+Or for a more complete guide there&amp;#8217;s
+&lt;a href="https://coderwall.com/p/s_ydlq/using-user-namespaces-on-docker"&gt;a good blog post here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;It&amp;#8217;s not without it&amp;#8217;s disadvantages though;
+Firstly it requires user namespaces to be compiled and enabled on the kernel.
+It&amp;#8217;s not in the stock arch kernel yet, and afaik it&amp;#8217;s not in ubuntu or redhat&amp;nbsp;either. &lt;/p&gt;
+&lt;p&gt;It also requires host system configuration changes including careful planning of
+user id&amp;nbsp;ranges. &lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m also unclear on the relationship between the owning uid, the subuid and
+if/how they overlap.
+It may still be possible that you end up with files owned by the wrong user, but
+at least it wont be&amp;nbsp;root. &lt;/p&gt;
+&lt;h1&gt;Conclusion&lt;/h1&gt;
+&lt;p&gt;Unfortunately, I ran out of time about here so I couldn&amp;#8217;t really play with user
+namespaces, but if I get the chance to do more it&amp;#8217;s probably the approach I&amp;#8217;ll
+try&amp;nbsp;next.&lt;/p&gt;
+&lt;p&gt;If I do I&amp;#8217;ll try and follow up with how well it&amp;nbsp;went. &lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Other useful&amp;nbsp;links&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/docker/docker/issues/7198"&gt;Docker bug on this&amp;nbsp;issue&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://rhelblog.redhat.com/2015/07/07/whats-next-for-containers-user-namespaces/"&gt;What’s Next for Containers? User&amp;nbsp;Namespaces&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://man7.org/linux/man-pages/man7/user_namespaces.7.html"&gt;man&amp;nbsp;user_namespaces&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.docker.com/engine/reference/commandline/dockerd/#/starting-the-daemon-with-user-namespaces-enabled"&gt;Docker help on&amp;nbsp;&amp;#8212;userns-remap&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://coderwall.com/p/s_ydlq/using-user-namespaces-on-docker"&gt;Using User Namespaces on&amp;nbsp;Docker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://blog.yadutaf.fr/2016/04/14/docker-for-your-users-introducing-user-namespace/"&gt;Tutorial (Docker for your&amp;nbsp;users)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="notes"></category><category term="docker"></category><category term="linux"></category><category term="lxc"></category><category term="research"></category></entry></feed>

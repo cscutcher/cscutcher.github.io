@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Pure Wild Animal Craziness - lxc</title><link href="http://chris.scutcher.uk/" rel="alternate"></link><link href="http://chris.scutcher.uk/feeds/tag/lxc.atom.xml" rel="self"></link><id>http://chris.scutcher.uk/</id><updated>2016-09-23T16:31:16+01:00</updated><entry><title>Research Spike on Docker Volume Permission</title><link href="http://chris.scutcher.uk/research-spike-on-docker-volume-permission.html" rel="alternate"></link><published>2016-09-21T17:19:52+01:00</published><updated>2016-09-23T16:31:16+01:00</updated><author><name>Chris Scutcher</name></author><id>tag:chris.scutcher.uk,2016-09-21:/research-spike-on-docker-volume-permission.html</id><summary type="html">&lt;p&gt;I love Docker. Who doesn&amp;#8217;t! But it&amp;#8217;s got one issue that continue to bugs me, and
+is always biting me in the&amp;nbsp;arse. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="Docker Logo" src="http://chris.scutcher.uk/images/docker.svg"&gt;&lt;/p&gt;
+&lt;p&gt;In many environments, such as on a dev box or a build slave, it can be useful to
+use docker to wrap a build tool …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I love Docker. Who doesn&amp;#8217;t! But it&amp;#8217;s got one issue that continue to bugs me, and
+is always biting me in the&amp;nbsp;arse. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="Docker Logo" src="http://chris.scutcher.uk/images/docker.svg"&gt;&lt;/p&gt;
+&lt;p&gt;In many environments, such as on a dev box or a build slave, it can be useful to
+use docker to wrap a build tool, or some other one-shot app.
+In other words you have some folder on your host machine that you want to modify
+and update using a dockerised&amp;nbsp;app.&lt;/p&gt;
+&lt;p&gt;The usually way to do this is use &lt;code&gt;--volume&lt;/code&gt; to mount in the host&amp;#8217;s directory
+into the container. However this causes&amp;nbsp;problems.&lt;/p&gt;
+&lt;p&gt;Most dockerised apps are designed to run as root.
+(There is a &lt;code&gt;--user&lt;/code&gt; flag for &lt;code&gt;docker run&lt;/code&gt; which I&amp;#8217;ll get to later but it
+doesn&amp;#8217;t seem to be used all that often.)
+This means that any files or folders added by the app in your volume end up
+belonging to the root user, rather than the user running &lt;code&gt;docker run&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;While it&amp;#8217;s possible to compensate for this, it&amp;#8217;s awkward as hell.
+I&amp;#8217;ve done a short research spike into some possible solutions and workarounds
+that I&amp;#8217;ve explored in the past, or have discovered more&amp;nbsp;recently.&lt;/p&gt;
+&lt;p&gt;I thought this is a good a place as any to store that research for myself and&amp;nbsp;others.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: This is really only an initial research spike so don&amp;#8217;t expect to find
+all the&amp;nbsp;answers!&lt;/em&gt;&lt;/p&gt;
+&lt;h1&gt;Using &lt;code&gt;--user&lt;/code&gt; flag with &lt;code&gt;docker run&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;This seems like the obvious answer at first. However it&amp;#8217;s not quite so perfect
+as it&amp;nbsp;seems.&lt;/p&gt;
+&lt;p&gt;The problem is that the docker image itself doesn&amp;#8217;t know what user id you&amp;#8217;re
+going to use when you &lt;code&gt;docker run&lt;/code&gt;. So say you&amp;#8217;re uid is 1111 there will be no
+entry in /etc/passwd, no home directory, nothing, unless you rebuild the docker
+image and add it&amp;nbsp;there. &lt;/p&gt;
+&lt;p&gt;Without /etc/passwd and other bits, many common linux commands start acting
+squirely. For example python gets upset looking for site packages if there&amp;#8217;s no
+home directory. 
+&lt;span class="caps"&gt;SSH&lt;/span&gt; can misbehave too, even if it has a valid &lt;code&gt;$HOME&lt;/code&gt; if there is no entry in 
+&lt;code&gt;/etc/passwd&lt;/code&gt; although I never got to the bottom of why. 
+You really can&amp;#8217;t blame the apps for this though, it&amp;#8217;s not entirely mad to assume
+that the user owning the process has a minimal footprint on the system, but it
+does complicate&amp;nbsp;matters.&lt;/p&gt;
+&lt;p&gt;This means you&amp;#8217;ve got to potentially rebuild your docker image for every
+potential user you intend to use in &lt;code&gt;--user&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;It also means that if you want to safely do &amp;#8220;root-like&amp;#8221; things, one of the big
+advantages of using docker, you can&amp;#8217;t do&amp;nbsp;so.&lt;/p&gt;
+&lt;h1&gt;Wrapping script inside the docker&amp;nbsp;image&lt;/h1&gt;
+&lt;p&gt;You could add a script in your docker image that wraps whatever command you
+intend to run with some clean up code to ensure any written files are chmodded
+back to the external users&amp;nbsp;uid:gid. &lt;/p&gt;
+&lt;p&gt;This works well enough, but unless every image you want to use already does it,
+it will probably mean you have to create your own image for almost every image
+you&amp;nbsp;use.&lt;/p&gt;
+&lt;p&gt;Said script also needs to know what the external &lt;span class="caps"&gt;UID&lt;/span&gt; is, so you&amp;#8217;ve now got to
+pass that into the &lt;code&gt;docker run&lt;/code&gt; command.
+Then you&amp;#8217;ve got to standardise how you do this in multiple images, and chances
+are you&amp;#8217;ll occasionally get something wrong and litter the volume with root&amp;nbsp;files.&lt;/p&gt;
+&lt;h1&gt;Wrapping script outside the docker&amp;nbsp;image&lt;/h1&gt;
+&lt;p&gt;Same principle as above, but instead of writing a script that&amp;#8217;s part of the
+docker image you have a script that wraps the &lt;code&gt;docker run&lt;/code&gt; command and fixes the
+files&amp;nbsp;afterwards.&lt;/p&gt;
+&lt;p&gt;On the upside you no longer have to do anything special when you run docker, but
+on the downside it likely wont work without using sudo which might not be&amp;nbsp;available.&lt;/p&gt;
+&lt;p&gt;A colleague got around this problem by calling &lt;code&gt;docker run&lt;/code&gt; a second time to do
+whatever privileged cleanup steps he needed aka docker as a sudo replacement, 
+which is a pretty novel solution, but obviously completely&amp;nbsp;mad.&lt;/p&gt;
+&lt;p&gt;Also, as with the previous &amp;#8216;solution&amp;#8217; things also get trickier if you want to
+have multiple non-root uids in play. I think it&amp;#8217;s possible but a lot more&amp;nbsp;gnarly.&lt;/p&gt;
+&lt;h1&gt;Using&amp;nbsp;bindfs&lt;/h1&gt;
+&lt;p&gt;&lt;a href="http://bindfs.org/docs/bindfs.1.html"&gt;bindfs&lt;/a&gt; can be used to bind mount one
+directory in another location and map between users on one side and the&amp;nbsp;other.&lt;/p&gt;
+&lt;p&gt;So for example if one had folder &lt;code&gt;/foo&lt;/code&gt; one could mount it in &lt;code&gt;/bar&lt;/code&gt; with the
+option &lt;code&gt;--map=jblogs/root&lt;/code&gt;.
+If there are files in &lt;code&gt;/foo&lt;/code&gt; owned by jblogs they will appear in &lt;code&gt;/bar&lt;/code&gt; as owned
+by root. If new files are created by root in &lt;code&gt;/bar&lt;/code&gt; they will appear on &lt;code&gt;/foo&lt;/code&gt;
+as owned by&amp;nbsp;jblogs.&lt;/p&gt;
+&lt;p&gt;So rather than just adding a working directory as a volume to docker, one would
+first create a bindfs mount of the working directory with a mapping and use that
+mount point as the volume with &lt;code&gt;docker run&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;&lt;span class="caps"&gt;IMO&lt;/span&gt; this is a nicer solution than any of the above, as it still allows you to be
+root inside the container, but without polluting the working&amp;nbsp;directory.&lt;/p&gt;
+&lt;p&gt;It has a bunch of downsides though;
+&lt;em&gt; It still requires you to do some scripting around the docker
+  commands to make it work cleanly. 
+&lt;/em&gt; You need bindfs (or something like it) on the host system and permission to
+  use it.
+&lt;em&gt; Bindfs in particular is apparently dog slow so I have read
+  (&lt;a href="https://github.com/docker/docker/issues/7198#issuecomment-71644946"&gt;Admittedly in a random github comment&lt;/a&gt;).
+&lt;/em&gt; I&amp;#8217;m not sure how bindfs works if you try and use a user id not covered by the
+  mappings. This could cause&amp;nbsp;problems.&lt;/p&gt;
+&lt;h1&gt;Using &lt;code&gt;docker volume create&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;This command can be used to manually create a docker volume which can be later
+mounted into the container. 
+When creating this volume one seems to be able to use any of the options
+normally present on the &amp;#8220;mount&amp;#8221; command. 
+This presumably would allow one to use something like bindfs above but keeping
+the config within docker&amp;nbsp;world. &lt;/p&gt;
+&lt;p&gt;That being said, it equally shares all of the problems with the previous&amp;nbsp;approach.&lt;/p&gt;
+&lt;p&gt;It is however the closest thing we&amp;#8217;ve got to an official solution to the
+problem.
+The bug
+&lt;a href="https://github.com/docker/docker/issues/7198"&gt;Make uid &lt;span class="amp"&gt;&amp;amp;&lt;/span&gt; gid configurable for shared volumes #7198&lt;/a&gt;
+was &lt;a href="https://github.com/docker/docker/issues/7198#issuecomment-191990887"&gt;closed&lt;/a&gt;
+when the local volumes feature&amp;nbsp;appeared;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;quot;You can do this by creating local volumes, it just landed in master #20262
+ ... Closing this as fixed.&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately how exactly local volumes could be used to achieve this was never
+explained and the rest of the bug is people trying to work out what this cryptic
+message meant. 
+It&amp;#8217;s possible there is some way to use local volumes to achieve this affect
+without bringing bindfs into the picture, but it&amp;#8217;s not obvious from my brief&amp;nbsp;investigation.&lt;/p&gt;
+&lt;h1&gt;User&amp;nbsp;Namespaces&lt;/h1&gt;
+&lt;p&gt;I&amp;#8217;m going to be slightly vague here because I&amp;#8217;m no expert on lxc and this
+feature in&amp;nbsp;particular.&lt;/p&gt;
+&lt;p&gt;User Namespaces allow a kernel level mapping between users inside and outside
+the&amp;nbsp;container. &lt;/p&gt;
+&lt;p&gt;So if we mapped out container to a namespace starting at 10000, the root user
+(uid=0) inside the container maps to uid 10000 outside. User with uid=1 inside
+maps to 10001 outside and so&amp;nbsp;on.&lt;/p&gt;
+&lt;p&gt;Immediately its obvious how this is almost exactly what we want.
+I haven&amp;#8217;t yet had a chance to try it out, but it seems like you could setup a
+pretty nice&amp;nbsp;solution.&lt;/p&gt;
+&lt;p&gt;To enable it&amp;#8217;s use in dockerd see
+&lt;a href="https://docs.docker.com/engine/reference/commandline/dockerd/#/starting-the-daemon-with-user-namespaces-enabled"&gt;this help page&lt;/a&gt;.
+Or for a more complete guide there&amp;#8217;s
+&lt;a href="https://coderwall.com/p/s_ydlq/using-user-namespaces-on-docker"&gt;a good blog post here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;It&amp;#8217;s not without it&amp;#8217;s disadvantages though;
+Firstly it requires user namespaces to be compiled and enabled on the kernel.
+It&amp;#8217;s not in the stock arch kernel yet, and afaik it&amp;#8217;s not in ubuntu or redhat&amp;nbsp;either. &lt;/p&gt;
+&lt;p&gt;It also requires host system configuration changes including careful planning of
+user id&amp;nbsp;ranges. &lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m also unclear on the relationship between the owning uid, the subuid and
+if/how they overlap.
+It may still be possible that you end up with files owned by the wrong user, but
+at least it wont be&amp;nbsp;root. &lt;/p&gt;
+&lt;h1&gt;Conclusion&lt;/h1&gt;
+&lt;p&gt;Unfortunately, I ran out of time about here so I couldn&amp;#8217;t really play with user
+namespaces, but if I get the chance to do more it&amp;#8217;s probably the approach I&amp;#8217;ll
+try&amp;nbsp;next.&lt;/p&gt;
+&lt;p&gt;If I do I&amp;#8217;ll try and follow up with how well it&amp;nbsp;went. &lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Other useful&amp;nbsp;links&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/docker/docker/issues/7198"&gt;Docker bug on this&amp;nbsp;issue&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://rhelblog.redhat.com/2015/07/07/whats-next-for-containers-user-namespaces/"&gt;What’s Next for Containers? User&amp;nbsp;Namespaces&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://man7.org/linux/man-pages/man7/user_namespaces.7.html"&gt;man&amp;nbsp;user_namespaces&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.docker.com/engine/reference/commandline/dockerd/#/starting-the-daemon-with-user-namespaces-enabled"&gt;Docker help on&amp;nbsp;&amp;#8212;userns-remap&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://coderwall.com/p/s_ydlq/using-user-namespaces-on-docker"&gt;Using User Namespaces on&amp;nbsp;Docker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://blog.yadutaf.fr/2016/04/14/docker-for-your-users-introducing-user-namespace/"&gt;Tutorial (Docker for your&amp;nbsp;users)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="notes"></category><category term="docker"></category><category term="linux"></category><category term="lxc"></category><category term="research"></category></entry></feed>

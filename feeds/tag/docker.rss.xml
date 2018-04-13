@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Pure Wild Animal Craziness - docker</title><link>http://chris.scutcher.uk/</link><description></description><lastBuildDate>Fri, 23 Sep 2016 16:31:16 +0100</lastBuildDate><item><title>Research Spike on Docker Volume Permission</title><link>http://chris.scutcher.uk/research-spike-on-docker-volume-permission.html</link><description>&lt;p&gt;I love Docker. Who doesn&amp;#8217;t! But it&amp;#8217;s got one issue that continue to bugs me, and
+is always biting me in the&amp;nbsp;arse. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="Docker Logo" src="http://chris.scutcher.uk/images/docker.svg"&gt;&lt;/p&gt;
+&lt;p&gt;In many environments, such as on a dev box or a build slave, it can be useful to
+use docker to wrap a build tool …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Chris Scutcher</dc:creator><pubDate>Wed, 21 Sep 2016 17:19:52 +0100</pubDate><guid isPermaLink="false">tag:chris.scutcher.uk,2016-09-21:/research-spike-on-docker-volume-permission.html</guid><category>notes</category><category>docker</category><category>linux</category><category>lxc</category><category>research</category></item></channel></rss>

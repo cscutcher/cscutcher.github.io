@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pure Wild Animal Craziness, Personal Homepage of Chris Scutcher, Esq.">
+
+        <link rel="alternate"  href="http://chris.scutcher.uk/feeds/all.atom.xml" type="application/atom+xml" title="Pure Wild Animal Craziness Full Atom Feed"/>
+        <link rel="alternate" href="http://chris.scutcher.uk/feeds/all.rss.xml" type="application/rss+xml" title="Pure Wild Animal Craziness Full RSS Feed"/>
+
+        <title>Research Spike on Docker Volume Permission // Pure Wild Animal Craziness // Personal Homepage of Chris Scutcher, Esq.</title>
+
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.3.0/pure-min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://chris.scutcher.uk/theme/css/pure.css">
+    <link rel="stylesheet" href="http://chris.scutcher.uk/theme/css/pygments.css">
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/fitvids/1.0.1/jquery.fitvids.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $(".content").fitVids();
+        });
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Research Spike on Docker Volume&nbsp;Permission",
+      "dateCreated": "2016-09-21 17:19:52+01:00",
+      "datePublished": "2016-09-23 16:31:16+01:00",
+      "description": "Research Spike on Docker Volume&nbsp;Permission",
+      "keywords": "notes,docker,linux,lxc,research,",
+      "author": {
+          "@context": "http://schema.org",
+          "@type": "Person",
+          "url": "http://chris.scutcher.uk/pages/about_me"
+      }
+    }
+    </script>
+</head>
+
+<body>
+    <div class="pure-g-r" id="layout">
+        <div class="sidebar pure-u">
+            <div class="cover-img" style="background-image: url('/images/cover_img.png')">
+                <div class="cover-body">
+                    <header class="header">
+                        <hgroup>
+                            <img class="avatar" src="https://www.gravatar.com/avatar/7dcb6b43b700a2870faa3aa1941d6da4?s=200&r=pg&d=mm">
+                            <h1 class="brand-main"><a href="http://chris.scutcher.uk">Pure Wild Animal Craziness</a></h1>
+                            <p class="tagline">Personal Homepage of Chris Scutcher, Esq.</p>
+                                <p class="links"><a href="/category/blog">Blog</a></p>
+                                <p class="links"><a href="/category/snippets">Snippets</a></p>
+                                <p class="links"><a href="/pages/about_me">About</a></p>
+                                <p class="links"><a href="/pages/cv">CV</a></p>
+                                <p class="social">
+                                    <a href="https://github.com/cscutcher">
+                                        <i class="fa fa-github fa-3x"></i>
+                                    </a>
+                                    <a href="https://uk.linkedin.com/in/cscutcher">
+                                        <i class="fa fa-linkedin fa-3x"></i>
+                                    </a>
+                                    <a href="https://plus.google.com/+ChrisScutcher">
+                                        <i class="fa fa-google-plus fa-3x"></i>
+                                    </a>
+                                    <a href="https://steamcommunity.com/id/zoolie/">
+                                        <i class="fa fa-steam fa-3x"></i>
+                                    </a>
+                                </p>
+                        </hgroup>
+                    </header>
+                </div>
+            </div>
+        </div>
+    <div class="pure-u">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>Research Spike on Docker Volume&nbsp;Permission</h1>
+                        <p class="post-meta">
+                            // under                                 <a class="post-category" href="http://chris.scutcher.uk/tag/notes.html">notes</a>
+                                <a class="post-category" href="http://chris.scutcher.uk/tag/docker.html">docker</a>
+                                <a class="post-category" href="http://chris.scutcher.uk/tag/linux.html">linux</a>
+                                <a class="post-category" href="http://chris.scutcher.uk/tag/lxc.html">lxc</a>
+                                <a class="post-category" href="http://chris.scutcher.uk/tag/research.html">research</a>
+                            Last modified: 2016-09-23 16:31:16+01:00
+                        </p>
+                </header>
+            </section>
+            <p>I love Docker. Who doesn&#8217;t! But it&#8217;s got one issue that continue to bugs me, and
+is always biting me in the&nbsp;arse. </p>
+<p><img alt="Docker Logo" src="http://chris.scutcher.uk/images/docker.svg"></p>
+<p>In many environments, such as on a dev box or a build slave, it can be useful to
+use docker to wrap a build tool, or some other one-shot app.
+In other words you have some folder on your host machine that you want to modify
+and update using a dockerised&nbsp;app.</p>
+<p>The usually way to do this is use <code>--volume</code> to mount in the host&#8217;s directory
+into the container. However this causes&nbsp;problems.</p>
+<p>Most dockerised apps are designed to run as root.
+(There is a <code>--user</code> flag for <code>docker run</code> which I&#8217;ll get to later but it
+doesn&#8217;t seem to be used all that often.)
+This means that any files or folders added by the app in your volume end up
+belonging to the root user, rather than the user running <code>docker run</code>. </p>
+<p>While it&#8217;s possible to compensate for this, it&#8217;s awkward as hell.
+I&#8217;ve done a short research spike into some possible solutions and workarounds
+that I&#8217;ve explored in the past, or have discovered more&nbsp;recently.</p>
+<p>I thought this is a good a place as any to store that research for myself and&nbsp;others.</p>
+<p><em>Note: This is really only an initial research spike so don&#8217;t expect to find
+all the&nbsp;answers!</em></p>
+<h1>Using <code>--user</code> flag with <code>docker run</code></h1>
+<p>This seems like the obvious answer at first. However it&#8217;s not quite so perfect
+as it&nbsp;seems.</p>
+<p>The problem is that the docker image itself doesn&#8217;t know what user id you&#8217;re
+going to use when you <code>docker run</code>. So say you&#8217;re uid is 1111 there will be no
+entry in /etc/passwd, no home directory, nothing, unless you rebuild the docker
+image and add it&nbsp;there. </p>
+<p>Without /etc/passwd and other bits, many common linux commands start acting
+squirely. For example python gets upset looking for site packages if there&#8217;s no
+home directory. 
+<span class="caps">SSH</span> can misbehave too, even if it has a valid <code>$HOME</code> if there is no entry in 
+<code>/etc/passwd</code> although I never got to the bottom of why. 
+You really can&#8217;t blame the apps for this though, it&#8217;s not entirely mad to assume
+that the user owning the process has a minimal footprint on the system, but it
+does complicate&nbsp;matters.</p>
+<p>This means you&#8217;ve got to potentially rebuild your docker image for every
+potential user you intend to use in <code>--user</code>.</p>
+<p>It also means that if you want to safely do &#8220;root-like&#8221; things, one of the big
+advantages of using docker, you can&#8217;t do&nbsp;so.</p>
+<h1>Wrapping script inside the docker&nbsp;image</h1>
+<p>You could add a script in your docker image that wraps whatever command you
+intend to run with some clean up code to ensure any written files are chmodded
+back to the external users&nbsp;uid:gid. </p>
+<p>This works well enough, but unless every image you want to use already does it,
+it will probably mean you have to create your own image for almost every image
+you&nbsp;use.</p>
+<p>Said script also needs to know what the external <span class="caps">UID</span> is, so you&#8217;ve now got to
+pass that into the <code>docker run</code> command.
+Then you&#8217;ve got to standardise how you do this in multiple images, and chances
+are you&#8217;ll occasionally get something wrong and litter the volume with root&nbsp;files.</p>
+<h1>Wrapping script outside the docker&nbsp;image</h1>
+<p>Same principle as above, but instead of writing a script that&#8217;s part of the
+docker image you have a script that wraps the <code>docker run</code> command and fixes the
+files&nbsp;afterwards.</p>
+<p>On the upside you no longer have to do anything special when you run docker, but
+on the downside it likely wont work without using sudo which might not be&nbsp;available.</p>
+<p>A colleague got around this problem by calling <code>docker run</code> a second time to do
+whatever privileged cleanup steps he needed aka docker as a sudo replacement, 
+which is a pretty novel solution, but obviously completely&nbsp;mad.</p>
+<p>Also, as with the previous &#8216;solution&#8217; things also get trickier if you want to
+have multiple non-root uids in play. I think it&#8217;s possible but a lot more&nbsp;gnarly.</p>
+<h1>Using&nbsp;bindfs</h1>
+<p><a href="http://bindfs.org/docs/bindfs.1.html">bindfs</a> can be used to bind mount one
+directory in another location and map between users on one side and the&nbsp;other.</p>
+<p>So for example if one had folder <code>/foo</code> one could mount it in <code>/bar</code> with the
+option <code>--map=jblogs/root</code>.
+If there are files in <code>/foo</code> owned by jblogs they will appear in <code>/bar</code> as owned
+by root. If new files are created by root in <code>/bar</code> they will appear on <code>/foo</code>
+as owned by&nbsp;jblogs.</p>
+<p>So rather than just adding a working directory as a volume to docker, one would
+first create a bindfs mount of the working directory with a mapping and use that
+mount point as the volume with <code>docker run</code>. </p>
+<p><span class="caps">IMO</span> this is a nicer solution than any of the above, as it still allows you to be
+root inside the container, but without polluting the working&nbsp;directory.</p>
+<p>It has a bunch of downsides though;
+<em> It still requires you to do some scripting around the docker
+  commands to make it work cleanly. 
+</em> You need bindfs (or something like it) on the host system and permission to
+  use it.
+<em> Bindfs in particular is apparently dog slow so I have read
+  (<a href="https://github.com/docker/docker/issues/7198#issuecomment-71644946">Admittedly in a random github comment</a>).
+</em> I&#8217;m not sure how bindfs works if you try and use a user id not covered by the
+  mappings. This could cause&nbsp;problems.</p>
+<h1>Using <code>docker volume create</code></h1>
+<p>This command can be used to manually create a docker volume which can be later
+mounted into the container. 
+When creating this volume one seems to be able to use any of the options
+normally present on the &#8220;mount&#8221; command. 
+This presumably would allow one to use something like bindfs above but keeping
+the config within docker&nbsp;world. </p>
+<p>That being said, it equally shares all of the problems with the previous&nbsp;approach.</p>
+<p>It is however the closest thing we&#8217;ve got to an official solution to the
+problem.
+The bug
+<a href="https://github.com/docker/docker/issues/7198">Make uid <span class="amp">&amp;</span> gid configurable for shared volumes #7198</a>
+was <a href="https://github.com/docker/docker/issues/7198#issuecomment-191990887">closed</a>
+when the local volumes feature&nbsp;appeared;</p>
+<div class="highlight"><pre><span></span>&quot;You can do this by creating local volumes, it just landed in master #20262
+ ... Closing this as fixed.&quot;
+</pre></div>
+
+
+<p>Unfortunately how exactly local volumes could be used to achieve this was never
+explained and the rest of the bug is people trying to work out what this cryptic
+message meant. 
+It&#8217;s possible there is some way to use local volumes to achieve this affect
+without bringing bindfs into the picture, but it&#8217;s not obvious from my brief&nbsp;investigation.</p>
+<h1>User&nbsp;Namespaces</h1>
+<p>I&#8217;m going to be slightly vague here because I&#8217;m no expert on lxc and this
+feature in&nbsp;particular.</p>
+<p>User Namespaces allow a kernel level mapping between users inside and outside
+the&nbsp;container. </p>
+<p>So if we mapped out container to a namespace starting at 10000, the root user
+(uid=0) inside the container maps to uid 10000 outside. User with uid=1 inside
+maps to 10001 outside and so&nbsp;on.</p>
+<p>Immediately its obvious how this is almost exactly what we want.
+I haven&#8217;t yet had a chance to try it out, but it seems like you could setup a
+pretty nice&nbsp;solution.</p>
+<p>To enable it&#8217;s use in dockerd see
+<a href="https://docs.docker.com/engine/reference/commandline/dockerd/#/starting-the-daemon-with-user-namespaces-enabled">this help page</a>.
+Or for a more complete guide there&#8217;s
+<a href="https://coderwall.com/p/s_ydlq/using-user-namespaces-on-docker">a good blog post here</a>.</p>
+<p>It&#8217;s not without it&#8217;s disadvantages though;
+Firstly it requires user namespaces to be compiled and enabled on the kernel.
+It&#8217;s not in the stock arch kernel yet, and afaik it&#8217;s not in ubuntu or redhat&nbsp;either. </p>
+<p>It also requires host system configuration changes including careful planning of
+user id&nbsp;ranges. </p>
+<p>I&#8217;m also unclear on the relationship between the owning uid, the subuid and
+if/how they overlap.
+It may still be possible that you end up with files owned by the wrong user, but
+at least it wont be&nbsp;root. </p>
+<h1>Conclusion</h1>
+<p>Unfortunately, I ran out of time about here so I couldn&#8217;t really play with user
+namespaces, but if I get the chance to do more it&#8217;s probably the approach I&#8217;ll
+try&nbsp;next.</p>
+<p>If I do I&#8217;ll try and follow up with how well it&nbsp;went. </p>
+<p><strong>Other useful&nbsp;links</strong></p>
+<ul>
+<li><a href="https://github.com/docker/docker/issues/7198">Docker bug on this&nbsp;issue</a></li>
+<li><a href="http://rhelblog.redhat.com/2015/07/07/whats-next-for-containers-user-namespaces/">What’s Next for Containers? User&nbsp;Namespaces</a></li>
+<li><a href="http://man7.org/linux/man-pages/man7/user_namespaces.7.html">man&nbsp;user_namespaces</a></li>
+<li><a href="https://docs.docker.com/engine/reference/commandline/dockerd/#/starting-the-daemon-with-user-namespaces-enabled">Docker help on&nbsp;&#8212;userns-remap</a></li>
+<li><a href="https://coderwall.com/p/s_ydlq/using-user-namespaces-on-docker">Using User Namespaces on&nbsp;Docker</a></li>
+<li><a href="https://blog.yadutaf.fr/2016/04/14/docker-for-your-users-introducing-user-namespace/">Tutorial (Docker for your&nbsp;users)</a></li>
+</ul>
+            <a href="#" class="go-top">Go Top</a>
+    <script src="https://apis.google.com/js/plusone.js">
+    </script>
+    <div class="comments">
+        <div id='gpluscomments'></div>
+        <script src='https://apis.google.com/js/plusone.js' type='text/javascript'></script>
+        <script>
+            gapi.comments.render(
+                'gpluscomments',
+                {
+                    href: window.location.href.replace(
+                                  // This nasty hack is because the g+ commen
+                                  // wotsit doesn't seem to link slightly
+                                  // differing hostnames.
+                                  window.location.pathname, '/permalinks/CJV9SXBtTzEshl0dqzBNDyAjFjY='),
+                    first_party_property: 'BLOGGER',
+                    view_type: 'FILTERED_POSTMOD'
+                })
+        </script>
+    </div>
+<footer class="footer">
+    <p>
+        &copy; Chris Scutcher &ndash;
+        <a href=http://chris.scutcher.uk//permalinks/CJV9SXBtTzEshl0dqzBNDyAjFjY=>Permalink</a> &ndash;
+        Built with <a href="https://github.com/PurePelicanTheme/pure-single">Pure Theme</a>
+        for <a href="http://blog.getpelican.com/">Pelican</a>
+    </p>
+</footer>        </div>
+    </div>
+    </div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+
+</body>
+</html>
